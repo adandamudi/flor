@@ -74,6 +74,7 @@ class Flog:
     @staticmethod
     def flagged():
         if not os.fork():
+            os.nice(10)
             return not not os.listdir(FLOR_CUR)
         else:
             return False
