@@ -75,6 +75,9 @@ class Flog:
     def flagged():
         if not os.fork():
             os.nice(10)
-            return not not os.listdir(FLOR_CUR)
+            if not not os.listdir(FLOR_CUR):
+                return True
+            else:
+                os._exit(0)
         else:
             return False
