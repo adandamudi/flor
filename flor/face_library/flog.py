@@ -40,13 +40,15 @@ class Flog:
 
     def write(self, s):
         #TODO: Can I dump with json rather than dumps
-        if self.init_in_func_ctx:
-            decision = self.controller.do(s)
-            if decision is Exit:
-                return False
-        self.writer.write(json.dumps(s) + '\n')
-        self.flush()
-        return True
+        with lock:
+            if self.init_in_func_ctx:
+                decision = self.controller.do(s)
+                if decision is Exit:
+                    return False
+            self.writer.write(json.dumps(s) + '\n')
+            self.flush()
+        os._exit(0) #TODO: replace 0 with the correct signal
+        # return True
 
     def flush(self):
         self.writer.flush()
@@ -71,4 +73,7 @@ class Flog:
 
     @staticmethod
     def flagged():
-        return not not os.listdir(FLOR_CUR)
+        if not os.fork():
+            return not not os.listdir(FLOR_CUR)
+        else:
+            return False

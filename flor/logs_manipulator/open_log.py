@@ -11,30 +11,32 @@ class OpenLog:
     def __init__(self, name, depth_limit=0):
         start()
         self.name = name
-        cond_mkdir(os.path.join(FLOR_DIR, name))
-        refresh_tree(FLOR_CUR)
-        open(os.path.join(FLOR_CUR, name), 'a').close()
+        with lock: #add fork to this later
+            cond_mkdir(os.path.join(FLOR_DIR, name))
+            refresh_tree(FLOR_CUR)
+            open(os.path.join(FLOR_CUR, name), 'a').close()
 
-        log_file = open(Flog.__get_current__(), 'a')
+            log_file = open(Flog.__get_current__(), 'a')
 
-        if depth_limit is not None:
-            put('depth_limit', depth_limit)
+            if depth_limit is not None:
+                put('depth_limit', depth_limit)
 
-        session_start = {'session_start': format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
-        log_file.write(json.dumps(session_start) + '\n')
-        log_file.flush()
-        log_file.close()
+            session_start = {'session_start': format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
+            log_file.write(json.dumps(session_start) + '\n')
+            log_file.flush()
+            log_file.close()
 
     def exit(self):
-        log_file = open(Flog.__get_current__(), 'a')
-        session_end = {'session_end': format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
-        log_file.write(json.dumps(session_end) + '\n')
-        log_file.flush()
+        with lock:
+            log_file = open(Flog.__get_current__(), 'a')
+            session_end = {'session_end': format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
+            log_file.write(json.dumps(session_end) + '\n')
+            log_file.flush()
 
-        refresh_tree(FLOR_CUR)
-        cond_rmdir(MODEL_DIR)
+            refresh_tree(FLOR_CUR)
+            cond_rmdir(MODEL_DIR)
 
-        log_file.close()
+            log_file.close()
 
     def __enter__(self):
         return self
