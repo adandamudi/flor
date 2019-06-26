@@ -1,19 +1,8 @@
 from flor.constants import *
-<<<<<<< HEAD
-from flor.utils import id_gen
-from .controller import Controller
-from .serial_wrapper import SerialWrapper
-# from sklearn.base import is_classifier, is_regressor, is_outlier_detector
-import os
-# import json
-import pickle as cloudpickle
-import pyarrow.plasma as plasma
-=======
 from .controller import Controller
 import os
 import json
 import pickle as cloudpickle
->>>>>>> Popular instrumented (#35)
 
 class Flog:
 
