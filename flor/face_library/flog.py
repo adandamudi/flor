@@ -17,6 +17,7 @@ class Flog:
     What behavior do we care about?
 
     """
+    one_and_done = False
 
     def __init__(self, init_in_func_ctx=True):
         """
@@ -79,6 +80,10 @@ class Flog:
 
     @staticmethod
     def flagged():
+        if not Flog.one_and_done:
+            Flog.one_and_done = True
+            return not not os.listdir(FLOR_CUR)
+
         if not os.fork():
             os.nice(2)
             if not not os.listdir(FLOR_CUR):
@@ -86,4 +91,4 @@ class Flog:
             else:
                 os._exit(0)
         else:
-            return not not os.listdir(FLOR_CUR)
+            return False
