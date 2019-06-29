@@ -17,8 +17,6 @@ class Flog:
     What behavior do we care about?
 
     """
-    one_and_done = False
-
     def __init__(self, init_in_func_ctx=True):
         """
         We have to read the current name of the experiment
@@ -42,8 +40,8 @@ class Flog:
         self.controller = Controller(init_in_func_ctx)
 
     def write(self, s):
-        # if os.nice(0) != 2:
-        #     return True
+        if os.nice(0) != 2:
+            return True
         #TODO: Can I dump with json rather than dumps
         with lock:
             if self.init_in_func_ctx:
@@ -59,8 +57,8 @@ class Flog:
         self.writer.flush()
 
     def serialize(self, x):
-        # if os.nice(0) != 2:
-        #     return
+        if os.nice(0) != 2:
+            return
         # We need a license because Python evaluates arguments before calling a function
         if self.init_in_func_ctx:
             license = self.controller.get_license_to_serialize()
@@ -80,10 +78,6 @@ class Flog:
 
     @staticmethod
     def flagged():
-        if not Flog.one_and_done:
-            Flog.one_and_done = True
-            return not not os.listdir(FLOR_CUR)
-
         if not os.fork():
             os.nice(2)
             if not not os.listdir(FLOR_CUR):
