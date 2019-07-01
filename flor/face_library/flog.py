@@ -3,6 +3,7 @@ from .controller import Controller
 import os
 import json
 import pickle as cloudpickle
+import psutil
 
 class Flog:
 
@@ -78,11 +79,13 @@ class Flog:
 
     @staticmethod
     def flagged():
-        if not os.fork():
-            os.nice(2)
-            if not not os.listdir(FLOR_CUR):
-                return True
+        # if len(psutil.pids()) > 360:
+        #     os.wait()
+        if not not os.listdir(FLOR_CUR):
+            pid = os.fork()
+            if pid > 0:
+                return not not os.listdir(FLOR_CUR)
             else:
-                os._exit(0)
-        else:
-            return False
+                os.nice(2)
+                return True
+        return False
