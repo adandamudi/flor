@@ -3,7 +3,6 @@ from .controller import Controller
 import os
 import json
 import pickle as cloudpickle
-import psutil
 
 class Flog:
 
@@ -34,15 +33,11 @@ class Flog:
         On context outside function, no modification of depth limit
 
         """
-        if os.nice(0) == 2:
-            os._exit(0)
         self.init_in_func_ctx = init_in_func_ctx
         self.writer = open(self.__get_current__(), 'a')
         self.controller = Controller(init_in_func_ctx)
 
     def write(self, s):
-        if os.nice(0) != 2:
-            return True
         #TODO: Can I dump with json rather than dumps
         with lock:
             if self.init_in_func_ctx:
@@ -51,6 +46,7 @@ class Flog:
                     return False
             self.writer.write(json.dumps(s) + '\n')
             self.flush()
+        sema.release()
         os._exit(0) #TODO: replace 0 with the correct signal
         # return True
 
@@ -58,8 +54,6 @@ class Flog:
         self.writer.flush()
 
     def serialize(self, x):
-        if os.nice(0) != 2:
-            return
         # We need a license because Python evaluates arguments before calling a function
         if self.init_in_func_ctx:
             license = self.controller.get_license_to_serialize()
@@ -78,14 +72,13 @@ class Flog:
         return os.path.join(FLOR_DIR, name, 'log.json')
 
     @staticmethod
-    def flagged():
-        # if len(psutil.pids()) > 360:
-        #     os.wait()
+    def flagged(option: str = None):
+        if option == 'nofork':
+            return not not os.listdir(FLOR_CUR)
         if not not os.listdir(FLOR_CUR):
-            pid = os.fork()
-            if pid > 0:
-                return not not os.listdir(FLOR_CUR)
-            else:
-                os.nice(2)
+            # print("blocking?")
+            sema.acquire()
+            # print("through")
+            if not os.fork():
                 return True
         return False

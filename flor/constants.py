@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-from multiprocessing import Lock
+from multiprocessing import Lock, Semaphore
 
 # Global log object for append.
 FLOR_DIR = os.path.join(os.path.expanduser('~'), '.flor')
@@ -14,3 +14,4 @@ class Exit: pass
 class Continue: pass
 
 lock = Lock()
+sema = Semaphore(4)
