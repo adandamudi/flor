@@ -3,6 +3,7 @@ from .controller import Controller
 import os
 import json
 import pickle as cloudpickle
+import psutil
 
 class Flog:
 
@@ -36,17 +37,16 @@ class Flog:
         self.init_in_func_ctx = init_in_func_ctx
         self.writer = open(self.__get_current__(), 'a')
         self.controller = Controller(init_in_func_ctx)
+        count = len(psutil.pids())
 
     def write(self, s):
         #TODO: Can I dump with json rather than dumps
-        with lock:
-            if self.init_in_func_ctx:
-                decision = self.controller.do(s)
-                if decision is Exit:
-                    return False
-            self.writer.write(json.dumps(s) + '\n')
-            self.flush()
-        sema.release()
+        if self.init_in_func_ctx:
+            decision = self.controller.do(s)
+            if decision is Exit:
+                return False
+        self.writer.write(json.dumps(s) + '\n')
+        self.flush()
         os._exit(0) #TODO: replace 0 with the correct signal
         # return True
 
@@ -76,9 +76,11 @@ class Flog:
         if option == 'nofork':
             return not not os.listdir(FLOR_CUR)
         if not not os.listdir(FLOR_CUR):
-            # print("blocking?")
-            sema.acquire()
-            # print("through")
-            if not os.fork():
+            global pids
+            if len(psutil.pids()) > 375:
+                os.wait()
+            pid = os.fork()
+            if not pid:
+                os.nice(1)
                 return True
         return False
