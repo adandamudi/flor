@@ -47,8 +47,10 @@ class Flog:
                 return False
         self.writer.write(json.dumps(s) + '\n')
         self.flush()
+        # self.writer.close()
         q.put(os.getpid())
         os._exit(0) #TODO: replace 0 with the correct signal
+        # raise SystemExit
         # return True
 
     def flush(self):
@@ -81,8 +83,8 @@ class Flog:
             pids = Flog.remove_finished(pids)
             if len(pids) > MAX_PROC:
                 pids = Flog.wait_pids(pids)
-            if len(psutil.pids()) > 500:
-                os.wait()
+            # if len(psutil.pids()) > 500:
+            #     os.wait()
             pid = os.fork()
             if not pid:
                 # os.nice(1)
