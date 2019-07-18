@@ -37,7 +37,6 @@ class Flog:
         self.init_in_func_ctx = init_in_func_ctx
         self.writer = open(self.__get_current__(), 'a')
         self.controller = Controller(init_in_func_ctx)
-        count = len(psutil.pids())
 
     def write(self, s):
         #TODO: Can I dump with json rather than dumps
@@ -47,10 +46,7 @@ class Flog:
                 return False
         self.writer.write(json.dumps(s) + '\n')
         self.flush()
-        # self.writer.close()
-        q.put(os.getpid())
         os._exit(0) #TODO: replace 0 with the correct signal
-        # raise SystemExit
         # return True
 
     def flush(self):
@@ -79,31 +75,9 @@ class Flog:
         if option == 'nofork':
             return not not os.listdir(FLOR_CUR)
         if not not os.listdir(FLOR_CUR):
-            global pids
-            pids = Flog.remove_finished(pids)
-            if len(pids) > MAX_PROC:
-                pids = Flog.wait_pids(pids)
-            # if len(psutil.pids()) > 500:
-            #     os.wait()
             pid = os.fork()
             if not pid:
-                # os.nice(1)
+                os.nice(1)
                 return True
             else:
-                pids.append(pid)
-        return False
-
-    @staticmethod
-    def remove_finished(pids):
-        while not q.empty():
-            x = q.get()
-            if isinstance(x, int):
-                if x in pids:
-                    pids.remove(x)
-        return pids
-
-
-    @staticmethod
-    def wait_pids(pids):
-        os.waitpid(pids[0], 0)
-        return pids[1:]
+                return False

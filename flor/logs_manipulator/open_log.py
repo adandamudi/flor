@@ -5,6 +5,7 @@ from flor.stateful import get, put, start
 import os
 import datetime
 import json
+import signal
 
 class OpenLog:
 
@@ -14,6 +15,7 @@ class OpenLog:
         cond_mkdir(os.path.join(FLOR_DIR, name))
         refresh_tree(FLOR_CUR)
         open(os.path.join(FLOR_CUR, name), 'a').close()
+        signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
         log_file = open(Flog.__get_current__(), 'a')
 
