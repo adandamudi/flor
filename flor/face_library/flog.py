@@ -104,10 +104,8 @@ class Flog:
                 return "PASS"
         if isinstance(x, dict) or isinstance(x, list) or isinstance(x, set):
             return SerialWrapper(x.copy())
-        if isinstance(x, ndarray):
+        if isinstance(x, ndarray) or isinstance(x, DataFrame):
             return SerialWrapper(x.copy())
-        if isinstance(x, DataFrame):
-            Flog.fork_now = True
         return SerialWrapper(x)
 
     @staticmethod
