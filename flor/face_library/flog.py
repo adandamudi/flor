@@ -82,11 +82,10 @@ class Flog:
             license = self.controller.get_license_to_serialize()
             if not license:
                 return "PASS"
-        if isinstance(x, dict) or isinstance(x, list) or isinstance(x, set):
+        try:
             return SerialWrapper(x.copy())
-        if isinstance(x, ndarray) or isinstance(x, DataFrame):
-            return SerialWrapper(x.copy())
-        return SerialWrapper(x)
+        except:
+            return SerialWrapper(x)
 
     @staticmethod
     def __get_current__():
