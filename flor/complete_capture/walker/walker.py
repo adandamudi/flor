@@ -181,6 +181,3 @@ class Walker():
                 for each in failed_transforms:
                     print(each)
                     f.write(each + '\n')
-
-
-

@@ -60,38 +60,18 @@ class Flog:
             decision = self.controller.do(s)
             if decision is Exit:
                 return False
+        Flog.buffer.append(s)
         if len(Flog.buffer) >= BUF_MAX or Flog.fork_now:
             if Flog.fork_now:
                 Flog.fork_now = False
             pid = os.fork()
             if not pid:
                 for each in Flog.buffer:
-                    self.writer.write(json.dumps(self.serialize_dict(each)) + '\n')
+                    self.writer.write(json.dumps(Flog.serialize_dict(each)) + '\n')
                 os._exit(0)
             else:
                 Flog.buffer = []
-        Flog.buffer.append(s)
         return True
-
-    def serialize_dict(self, x):
-        for k, v in x.items():
-            if isinstance(x[k], SerialWrapper):
-                x[k] = x[k].serialize()
-            elif isinstance(x[k], dict):
-                x[k] = self.serialize_dict(x[k])
-            elif isinstance(x[k], list):
-                x[k] = self.serialize_list(x[k])
-        return x
-
-    def serialize_list(self, x):
-        for i in range(len(x)):
-            if isinstance(x[i], SerialWrapper):
-                x[i] = x[i].serialize()
-            elif isinstance(x[i], dict):
-                x[i] = self.serialize_dict(x[i])
-            elif isinstance(x[i], list):
-                x[i] = self.serialize_list(x[i])
-        return x
 
     def flush(self):
         self.writer.flush()
@@ -125,3 +105,25 @@ class Flog:
         #         return True
         #     else:
         #         return False
+
+    @staticmethod
+    def serialize_dict(x):
+        for k, v in x.items():
+            if isinstance(x[k], SerialWrapper):
+                x[k] = x[k].serialize()
+            elif isinstance(x[k], dict):
+                x[k] = Flog.serialize_dict(x[k])
+            elif isinstance(x[k], list):
+                x[k] = Flog.serialize_list(x[k])
+        return x
+
+    @staticmethod
+    def serialize_list(x):
+        for i in range(len(x)):
+            if isinstance(x[i], SerialWrapper):
+                x[i] = x[i].serialize()
+            elif isinstance(x[i], dict):
+                x[i] = Flog.serialize_dict(x[i])
+            elif isinstance(x[i], list):
+                x[i] = Flog.serialize_list(x[i])
+        return x
