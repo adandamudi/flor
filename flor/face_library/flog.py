@@ -23,6 +23,7 @@ class Flog:
     """
     buffer = []
     fork_now = False
+    serializing = False
 
     def __init__(self, init_in_func_ctx=True):
         """
@@ -61,7 +62,8 @@ class Flog:
             if decision is Exit:
                 return False
         Flog.buffer.append(s)
-        if len(Flog.buffer) >= BUF_MAX or Flog.fork_now:
+        buffer_len = len(Flog.buffer)
+        if buffer_len >= BUF_MAX or Flog.fork_now:
             if Flog.fork_now:
                 Flog.fork_now = False
             pid = os.fork()
@@ -97,19 +99,17 @@ class Flog:
         if option == 'nofork':
             return not not os.listdir(FLOR_CUR)
         return not not os.listdir(FLOR_CUR)
-        # if not not os.listdir(FLOR_CUR):
-        #     pid = os.fork()
-        #     if not pid:
-        #         os.nice(1)
-        #         return True
-        #     else:
-        #         return False
 
     @staticmethod
+    #TODO: handle loop detection somewhere in here
     def serialize_dict(x):
+        if Flog.serializing:
+            return "Failed to Serialize"
         for k, v in x.items():
             if isinstance(x[k], SerialWrapper):
+                Flog.serializing = True
                 x[k] = x[k].serialize()
+                Flog.serializing = False
             elif isinstance(x[k], dict):
                 x[k] = Flog.serialize_dict(x[k])
             elif isinstance(x[k], list):
@@ -118,9 +118,13 @@ class Flog:
 
     @staticmethod
     def serialize_list(x):
+        if Flog.serializing:
+            return "Failed to Serialize"
         for i in range(len(x)):
             if isinstance(x[i], SerialWrapper):
+                Flog.serializing = True
                 x[i] = x[i].serialize()
+                Flog.serializing = False
             elif isinstance(x[i], dict):
                 x[i] = Flog.serialize_dict(x[i])
             elif isinstance(x[i], list):
