@@ -1,5 +1,6 @@
 import shutil
 from flor.constants import *
+import os
 
 
 def cond_mkdir(path):
@@ -35,3 +36,7 @@ def check_flor_install():
         import sys
         sys.exit(0)
 
+def write_debug_msg(msg):
+    assert isinstance(msg, str)
+    with open(os.path.join(FLOR_DIR, 'debug_msg.txt'), 'a') as f:
+        f.write(msg + '\n')
