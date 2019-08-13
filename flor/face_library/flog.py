@@ -45,15 +45,11 @@ class Flog:
         self.writer = open(self.__get_current__(), 'a')
         self.controller = Controller(init_in_func_ctx)
 
-<<<<<<< HEAD
-    def serial_write(self, s):
-=======
         # variable below is used by the controller,
         # to avoid infinite recursions due to repeated calls to __get_state__
         self.block_succeeded = False
 
     def write(self, s):
->>>>>>> fixing infinite recursion bug
         #TODO: Can I dump with json rather than dumps
         if self.init_in_func_ctx:
             decision = self.controller.do(s)
@@ -88,13 +84,11 @@ class Flog:
 
     def serialize(self, x, name: str = None):
         # We need a license because Python evaluates arguments before calling a function
-        reset_succeeded = False
+        if self.init_in_func_ctx:
+            license = self.controller.get_license_to_serialize()
+            if not license:
+                return "PASS"
         try:
-<<<<<<< HEAD
-            return SerialWrapper(x.copy())
-        except:
-            return SerialWrapper(x)
-=======
             if name == "self":
                 reset_succeeded = self.controller.cond_reset()
             if self.init_in_func_ctx:
@@ -108,13 +102,16 @@ class Flog:
                 return "ERROR: failed to serialize"
         finally:
             self.controller.unreset(reset_succeeded)
+            out = str(cloudpickle.dumps(x))
+            return out
+        except:
+            return "ERROR: failed to serialize"
 
     def block_recursive_serialization(self):
         self.block_succeeded = self.controller.cond_inf_recursion_block()
     
     def unblock_recursive_serialization(self):
         self.controller.inf_recursion_unblock(self.block_succeeded)
->>>>>>> fixing infinite recursion bug
 
     @staticmethod
     def __get_current__():
