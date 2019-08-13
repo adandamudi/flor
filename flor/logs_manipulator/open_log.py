@@ -9,6 +9,7 @@ from flor.constants import *
 from flor.face_library.flog import Flog
 from flor.stateful import put, start
 from flor.utils import cond_mkdir, refresh_tree, cond_rmdir
+from flor.utils import get_ntp_time
 
 
 class OpenLog:
@@ -63,37 +64,6 @@ class OpenLog:
         user_id = getpass.getuser()
         session_start.update({'user_id': user_id})
 
-
-        # Reliable timestamp from network server
-        def get_ntp_time(host='time.nist.gov'):
-            # Adapted from https://www.mattcrampton.com/blog/query_an_ntp_server_from_python/
-            # and https://gist.github.com/guneysus/9f85ab77e1a11d0eebdb
-            import socket
-            from socket import AF_INET, SOCK_DGRAM
-            import struct
-            import time
-
-            port = 123
-            buf = 1024
-            address = (host, port)
-            msg = '\x1b' + 47 * '\0'
-
-            # reference time (in seconds since 1900-01-01 00:00:00)
-            time1970 = 2208988800  # 1970-01-01 00:00:00
-
-            # connect to server
-            client = socket.socket(AF_INET, SOCK_DGRAM)
-            client.sendto(msg.encode('utf-8'), address)
-            msg, address = client.recvfrom(buf)
-
-            if msg:
-                # timestamp: seconds since epoch
-                timestamp = struct.unpack('!12I', msg)[10]
-                timestamp -= time1970
-                local_time = time.ctime(timestamp).replace('  ', ' ')
-                utc_time = time.strftime('%a %b %d %X %Y %Z', time.gmtime(timestamp))
-                return timestamp, local_time, utc_time
-
         timestamp, local_time, utc_time = get_ntp_time()
 
         session_start.update({'timestamp': timestamp})
@@ -108,6 +78,12 @@ class OpenLog:
     def exit(self):
         log_file = open(Flog.__get_current__(), 'a')
         session_end = {'session_end': format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
+
+        timestamp, local_time, utc_time = get_ntp_time()
+        session_end.update({'timestamp': timestamp})
+        session_end.update({'local_time': local_time})
+        session_end.update({'UTC_time': utc_time})
+
         log_file.write(json.dumps(session_end) + '\n')
         log_file.flush()
 
