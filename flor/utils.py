@@ -43,13 +43,15 @@ def write_debug_msg(msg):
     with open(os.path.join(FLOR_DIR, 'debug_msg.txt'), 'a') as f:
         f.write(msg + '\n')
 
+
 def write_failure_msg(msg):
     assert isinstance(msg, str)
     with open(os.path.join(FLOR_DIR, 'failures.txt'), 'a') as f:
         f.write(msg + '\n')
 
+
 # Reliable timestamp from network server
-def get_ntp_time(host='time.nist.gov'):
+def get_timestamp(src='time.google.com'):
     # Adapted from https://www.mattcrampton.com/blog/query_an_ntp_server_from_python/
     # and https://gist.github.com/guneysus/9f85ab77e1a11d0eebdb
     import socket
@@ -59,21 +61,26 @@ def get_ntp_time(host='time.nist.gov'):
 
     port = 123
     buf = 1024
-    address = (host, port)
+    address = (src, port)
     msg = '\x1b' + 47 * '\0'
 
     # reference time (in seconds since 1900-01-01 00:00:00)
     time1970 = 2208988800  # 1970-01-01 00:00:00
-
+    timestamp = time.time()
     # connect to server
-    client = socket.socket(AF_INET, SOCK_DGRAM)
-    client.sendto(msg.encode('utf-8'), address)
-    msg, address = client.recvfrom(buf)
+    try:
+        socket.setdefaulttimeout(3)  # set timeout to 3s
+        client = socket.socket(AF_INET, SOCK_DGRAM)
+        client.sendto(msg.encode('utf-8'), address)
+        msg, address = client.recvfrom(buf)
 
-    if msg:
-        # timestamp: seconds since epoch
-        timestamp = struct.unpack('!12I', msg)[10]
-        timestamp -= time1970
-        local_time = time.ctime(timestamp).replace('  ', ' ')
-        utc_time = time.strftime('%a %b %d %X %Y %Z', time.gmtime(timestamp))
-        return timestamp, local_time, utc_time
+        if msg:
+            # timestamp: seconds since epoch
+            timestamp = struct.unpack('!12I', msg)[10] - time1970
+    except socket.timeout:
+        src = 'local'
+
+    local_time = time.ctime(timestamp).replace('  ', ' ')
+    utc_time = time.strftime('%a %b %d %X %Y %Z', time.gmtime(timestamp))
+
+    return timestamp, local_time, utc_time, src

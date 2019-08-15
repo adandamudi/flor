@@ -9,7 +9,7 @@ from flor.constants import *
 from flor.face_library.flog import Flog
 from flor.stateful import put, start
 from flor.utils import cond_mkdir, refresh_tree, cond_rmdir
-from flor.utils import get_ntp_time
+from flor.utils import get_timestamp
 
 
 class OpenLog:
@@ -64,11 +64,12 @@ class OpenLog:
         user_id = getpass.getuser()
         session_start.update({'user_id': user_id})
 
-        timestamp, local_time, utc_time = get_ntp_time()
+        timestamp, local_time, utc_time, src_of_time = get_timestamp()
 
         session_start.update({'timestamp': timestamp})
         session_start.update({'local_time': local_time})
         session_start.update({'UTC_time': utc_time})
+        session_start.update({'source_of_time': src_of_time})
 
         log_file.write(json.dumps(session_start) + '\n')
 
@@ -79,10 +80,11 @@ class OpenLog:
         log_file = open(Flog.__get_current__(), 'a')
         session_end = {'session_end': format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
 
-        timestamp, local_time, utc_time = get_ntp_time()
+        timestamp, local_time, utc_time, src_of_time = get_timestamp()
         session_end.update({'timestamp': timestamp})
         session_end.update({'local_time': local_time})
         session_end.update({'UTC_time': utc_time})
+        session_end.update({'source_of_time': src_of_time})
 
         log_file.write(json.dumps(session_end) + '\n')
         log_file.flush()
