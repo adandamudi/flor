@@ -2,10 +2,7 @@ from flor.constants import *
 import os
 import json
 import pickle as cloudpickle
-import psutil
-from flor.face_library.serial_wrapper import SerialWrapper
-from numpy import ndarray
-from pandas import DataFrame
+from .serial_wrapper import *
 
 class Flog:
 
@@ -15,15 +12,48 @@ class Flog:
     xp_name = None
     log_path = None
 
+    buffer = []
+    fork_now = False
+
     def __init__(self):
         self.writer = open(Flog.log_path, 'a')
 
     def write(self, s):
+        Flog.buffer.append(s)
+        buffer_len = len(Flog.buffer)
+        if buffer_len >= BUF_MAX or Flog.fork_now:
+            Flog.fork_now = False
+            pid = os.fork()
+            if not pid:
+                Flog.serializing = True
+                for each in Flog.buffer:
+                    try:
+                        serialized = Flog.serialize_dict(each)
+                    except:
+                        serialized = "ERROR: failed to serialize"
+                    finally:
+                        self.writer.write(json.dumps(serialized) + '\n')
+                Flog.serializing = False #this is probably unnecessary since we're terminating immediately afterwards
+                os._exit(0)
+            else:
+                Flog.buffer = []
+        return True
+
+    def serialize(self, x, name: str = None):
+        try:
+            Flog.serializing = True
+            return SerialWrapper(x.copy())
+        except:
+            return SerialWrapper(x)
+        finally:
+            Flog.serializing = False
+
+    def serial_write(self, s):
         self.writer.write(json.dumps(s) + '\n')
         self.writer.flush()
         return True
 
-    def serialize(self, x, name: str = None):
+    def serial_serialize(self, x, name: str = None):
         try:
             Flog.serializing = True
             out = str(cloudpickle.dumps(x))
@@ -61,3 +91,25 @@ class Flog:
                 Flog.depth_limit += 1
         return depth_limit is None or depth_limit >= 0
 
+    @staticmethod
+    # TODO: handle loop detection somewhere in here
+    def serialize_dict(x):
+        for k, v in x.items():
+            if isinstance(x[k], SerialWrapper):
+                x[k] = x[k].serialize()
+            elif isinstance(x[k], dict):
+                x[k] = Flog.serialize_dict(x[k])
+            elif isinstance(x[k], list):
+                x[k] = Flog.serialize_list(x[k])
+        return x
+
+    @staticmethod
+    def serialize_list(x):
+        for i in range(len(x)):
+            if isinstance(x[i], SerialWrapper):
+                x[i] = x[i].serialize()
+            elif isinstance(x[i], dict):
+                x[i] = Flog.serialize_dict(x[i])
+            elif isinstance(x[i], list):
+                x[i] = Flog.serialize_list(x[i])
+        return x
