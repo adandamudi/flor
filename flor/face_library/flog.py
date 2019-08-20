@@ -26,13 +26,15 @@ class Flog:
             pid = os.fork()
             if not pid:
                 Flog.serializing = True
+                writer = open(str(os.getpid())+'.txt', 'a')
                 for each in Flog.buffer:
                     try:
                         serialized = Flog.serialize_dict(each)
                     except:
                         serialized = "ERROR: failed to serialize"
                     finally:
-                        self.writer.write(json.dumps(serialized) + '\n')
+                        writer.write(json.dumps(serialized) + '\n')
+                writer.close()
                 Flog.serializing = False #this is probably unnecessary since we're terminating immediately afterwards
                 os._exit(0)
             else:
