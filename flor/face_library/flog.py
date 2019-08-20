@@ -26,7 +26,7 @@ class Flog:
             pid = os.fork()
             if not pid:
                 Flog.serializing = True
-                writer = open(str(os.getpid())+'.txt', 'a')
+                writer = open(Flog.log_path[:-8] + str(os.getpid()) + '.json', 'a')
                 for each in Flog.buffer:
                     try:
                         serialized = Flog.serialize_dict(each)
