@@ -5,6 +5,7 @@ import uuid
 import os
 
 import git
+import signal
 
 from flor.constants import *
 from flor.face_library.flog import Flog
@@ -17,6 +18,7 @@ class OpenLog:
     def __init__(self, name, depth_limit=None):
         self.name = name
         cond_mkdir(os.path.join(FLOR_DIR, name))
+        signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
         Flog.xp_name = name
         Flog.log_path = os.path.join(FLOR_DIR, name, 'log.json')
