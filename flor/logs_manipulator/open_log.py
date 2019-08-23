@@ -53,17 +53,18 @@ class OpenLog:
                 git.Repo.__init__(self, *args, **kwargs)
 
         r = GitConfig().config_reader()
-        user_name = r.get_value('user', 'name')
-        user_email = r.get_value('user', 'email')
-        session_start.update({'git_user_name': user_name})
-        session_start.update({'git_user_email': user_email})
 
+        try:
+            git_user_items = r.items('user')
+            git_user_dict = dict(map(lambda x: ('git_user_' + x[0], x[1]), git_user_items))
+            session_start.update(git_user_dict)
+        except Exception as e:
+            print('Git user information has not been set.')
 
         # System's userid
         import getpass
         user_id = getpass.getuser()
         session_start.update({'user_id': user_id})
-
 
         timestamp, local_time, utc_time, src_of_time = get_timestamp()
 
@@ -71,7 +72,6 @@ class OpenLog:
         session_start.update({'local_time': local_time})
         session_start.update({'UTC_time': utc_time})
         session_start.update({'source_of_time': src_of_time})
-
 
         log_file.write(json.dumps(session_start) + '\n')
 
