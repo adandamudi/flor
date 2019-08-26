@@ -5,7 +5,10 @@ import uuid
 import os
 
 import git
+<<<<<<< HEAD
 import signal
+=======
+>>>>>>> 1339600219a9ea3d8db9387d6251b57e4491d5ec
 
 from flor.constants import *
 from flor.face_library.flog import Flog

@@ -9,7 +9,11 @@ with open("requirements.txt", 'r') as f:
 
 setuptools.setup(
      name='pyflor',
+<<<<<<< HEAD
      version='0.0.3a46',
+=======
+     version='0.0.3a47',
+>>>>>>> 1339600219a9ea3d8db9387d6251b57e4491d5ec
      author="Rolando Garcia",
      author_email="rogarcia@berkeley.edu",
      description="A diagnostics and sharing system for ML",

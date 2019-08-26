@@ -76,7 +76,7 @@ class Walker():
                         'eli5',
                         'tensorboard',
                         'tensorflow',
-                        'tensorflow_estimator'
+                        'tensorflow_estimator',
                         'torch',
                         'torchvision',
                         'keras',
@@ -153,5 +153,6 @@ class Walker():
             print("FAILED TO TRANSFORM:")
             for each in failed_transforms:
                 print(each)
+
 
 

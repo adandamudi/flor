@@ -28,6 +28,7 @@ def cond_rmdir(path):
     if os.path.isdir(path):
         shutil.rmtree(path)
 
+
 def check_flor_install():
     if not os.path.exists(os.path.join(FLOR_DIR, '.conda_map')):
         print("Flor hasn't been installed.")
