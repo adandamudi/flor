@@ -74,6 +74,7 @@ def get_timestamp(src='time.google.com'):
         if msg:
             # timestamp: seconds since epoch
             timestamp = struct.unpack('!12I', msg)[10] - time1970
+        client.close()
     except socket.timeout:
         src = 'local'
 

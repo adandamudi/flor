@@ -1,6 +1,8 @@
 from flor.constants import *
 import os
 import json
+import psutil
+import copy
 import pickle as cloudpickle
 from .serial_wrapper import *
 
@@ -16,15 +18,19 @@ class Flog:
     fork_now = False
 
     def __init__(self):
+        # self.writer = None
         self.writer = open(Flog.log_path, 'a')
 
     def write(self, s):
         Flog.buffer.append(s)
         buffer_len = len(Flog.buffer)
         if buffer_len >= BUF_MAX or Flog.fork_now:
+            Flog.buffer = []
+            return True
             Flog.fork_now = False
             pid = os.fork()
             if not pid:
+                os.nice(1)
                 Flog.serializing = True
                 writer = open(Flog.log_path[:-8] + str(os.getpid()) + '.json', 'a')
                 for each in Flog.buffer:
@@ -42,13 +48,17 @@ class Flog:
         return True
 
     def serialize(self, x, name: str = None):
-        try:
-            Flog.serializing = True
-            return SerialWrapper(x.copy())
-        except:
-            return SerialWrapper(x)
-        finally:
-            Flog.serializing = False
+        if not isinstance(x, (int, float, bool, str)):
+            try:
+                Flog.serializing = True
+                return SerialWrapper(copy.deepcopy(x))
+            except:
+                try:
+                    return str(cloudpickle.dumps(x))
+                except:
+                    return "Error: failed to serialize"
+            finally:
+                Flog.serializing = False
 
     def serial_write(self, s):
         self.writer.write(json.dumps(s) + '\n')
@@ -98,7 +108,7 @@ class Flog:
     def serialize_dict(x):
         for k, v in x.items():
             if isinstance(x[k], SerialWrapper):
-                x[k] = x[k].serialize()
+                x[k] = Flog.serialize_one(x[k].get())
             elif isinstance(x[k], dict):
                 x[k] = Flog.serialize_dict(x[k])
             elif isinstance(x[k], list):
@@ -109,9 +119,21 @@ class Flog:
     def serialize_list(x):
         for i in range(len(x)):
             if isinstance(x[i], SerialWrapper):
-                x[i] = x[i].serialize()
+                x[i] = Flog.serialize_one(x[i].get())
             elif isinstance(x[i], dict):
                 x[i] = Flog.serialize_dict(x[i])
             elif isinstance(x[i], list):
                 x[i] = Flog.serialize_list(x[i])
         return x
+
+    @staticmethod
+    def serialize_one(x):
+        try:
+            Flog.serializing = True
+            out = str(cloudpickle.dumps(x))
+            return out
+        except:
+            return "ERROR: failed to serialize"
+        finally:
+            Flog.serializing = False
+
