@@ -7,6 +7,7 @@ FLOR_DIR = os.path.join(os.path.expanduser('~'), '.flor')
 FLOR_SHARE = os.path.join('usr', 'share', 'flor')
 FLOR_CUR = os.path.join(FLOR_DIR, '.current')
 MODEL_DIR = os.path.join(FLOR_DIR, '.stateful')
+BUF_MAX = 30000
 
 class Null: pass
 class Exit: pass

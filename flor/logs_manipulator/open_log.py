@@ -5,6 +5,10 @@ import uuid
 import os
 
 import git
+<<<<<<< HEAD
+import signal
+=======
+>>>>>>> 1339600219a9ea3d8db9387d6251b57e4491d5ec
 
 from flor.constants import *
 from flor.face_library.flog import Flog
@@ -17,6 +21,7 @@ class OpenLog:
     def __init__(self, name, depth_limit=None):
         self.name = name
         cond_mkdir(os.path.join(FLOR_DIR, name))
+        signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
         Flog.xp_name = name
         Flog.log_path = os.path.join(FLOR_DIR, name, 'log.json')
@@ -79,6 +84,21 @@ class OpenLog:
         log_file.close()
 
     def exit(self):
+        if Flog.buffer or Flog.fork_now:
+            pid = os.fork()
+            if not pid:
+                Flog.serializing = True
+                writer = open(Flog.log_path[:-8] + str(os.getpid()) + '.json', 'a')
+                for each in Flog.buffer:
+                    try:
+                        serialized = Flog.serialize_dict(each)
+                    except:
+                        serialized = "ERROR: failed to serialize"
+                    finally:
+                        writer.write(json.dumps(serialized) + '\n')
+                writer.close()
+                Flog.serializing = False  # this is probably unnecessary since we're terminating immediately afterwards
+                os._exit(0)
         log_file = open(Flog.log_path, 'a')
         session_end = {'session_end': format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
 
