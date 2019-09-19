@@ -152,8 +152,11 @@ flor() {{
     env_path = os.path.join(env_path, 'lib', 'python' + python_version, 'site-packages')
 
     # Perform lib transformation
-    walker = Walker(env_path)
-    walker.compile_tree()
+    # We are voluntarily refusing to transform
+    # library code to test hypothesis that seed is sufficient for recovering an execution
+
+    # walker = Walker(env_path)
+    # walker.compile_tree()
 
     print("Install succeeded.")
 
