@@ -18,15 +18,12 @@ class Flog:
     fork_now = False
 
     def __init__(self):
-        # self.writer = None
         self.writer = open(Flog.log_path, 'a')
 
     def write(self, s):
         Flog.buffer.append(s)
         buffer_len = len(Flog.buffer)
         if buffer_len >= BUF_MAX or Flog.fork_now:
-            Flog.buffer = []
-            return True
             Flog.fork_now = False
             pid = os.fork()
             if not pid:
@@ -129,11 +126,8 @@ class Flog:
     @staticmethod
     def serialize_one(x):
         try:
-            Flog.serializing = True
             out = str(cloudpickle.dumps(x))
             return out
         except:
             return "ERROR: failed to serialize"
-        finally:
-            Flog.serializing = False
 
