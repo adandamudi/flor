@@ -87,9 +87,9 @@ class EntropyController:
         :param root_script_path: The path to the file that python was called on `python script.py`
         :return:
         """
-        root_script_path = os.path.abspath(root_script_path)
+        self.root_script_path = os.path.abspath(root_script_path)
         if root_dir is None:
-            root_dir = os.path.dirname(root_script_path)
+            root_dir = os.path.dirname(self.root_script_path)
         watched_imports = set([])
         for path, contents in self._walk_tree(root_dir):
             watched_imports |= self._get_imports(contents)
@@ -112,9 +112,12 @@ class EntropyController:
         if 'torch' in entropy_dependencies:
             statements.extend(self._control_torch_initialization())
 
-        root_script_ast = self._transform_root_script(root_script_path, self._sort_control_statements(statements))
+        if statements:
+            statements = self._postproc_statements(statements)
 
-        self._write_ast(root_script_path, root_script_path)
+        root_script_ast = self._transform_root_script(self._sort_control_statements(statements))
+
+        self._write_ast(root_script_ast)
 
     def _walk_tree(self, root_dir, filter=lambda abs_path: True):
         for (src_root, dirs, files) in os.walk(root_dir):
@@ -149,26 +152,50 @@ class EntropyController:
 
         return watched_imports
 
+    def _build_state_serializer(self, rng_source: str, stategetter: str):
+        return ''.join([
+                "Flog.flagged() and ",
+                "flog.write(",
+                "flog.serialize(",
+                "{",
+                "'file_path': '{}', ".format(self.root_script_path),
+                "'rng_source': '{}', ".format(rng_source),
+                "'state': flog.serialize({}), ".format(stategetter),
+                "}))"
+               ])
+
     def _control_random_initialization(self):
         """
-
-        :return: list of statements
+        :return: list of ast statements for `random`
         """
-        pass
+        statements = ["import random",
+                      self._build_state_serializer('random', 'random.getstate()')]
+        statements = ast.parse("\n".join(statements)).body
+        return statements
 
     def _control_numpy_initialization(self):
         """
 
-        :return: list of statements
+        :return: list of ast statements for `numpy`
         """
-        pass
+        statements = ["import numpy",
+                      self._build_state_serializer('numpy', 'numpy.get_state()')]
+        statements = ast.parse("\n".join(statements)).body
+        return statements
 
     def _control_tf_initialization(self):
         """
-
+        # TODO: Testing necessary
+        # TODO: Make compatible with earlier versions of tf
         :return: list of statements
         """
-        pass
+        seed_name = "____seed___"
+        statements = ["import tensorflow",
+                      "{} = numpy.random.randint(-9223372036854775808, 9223372036854775808)".format(seed_name),
+                      "tensorflow.random.set_seed({})".format(seed_name),
+                      self._build_state_serializer('tensorflow_seed', seed_name),
+                      "del {}".format(seed_name)
+                      ]
 
     def _control_torch_initialization(self):
         """
@@ -177,22 +204,22 @@ class EntropyController:
         """
         pass
 
-    def _transform_root_script(self, root_script_path, statements):
-        pass
+    def _transform_root_script(self, statements):
+        self.root_script_path
 
-    def _write_ast(self, ast, path):
+    def _write_ast(self, ast):
         source_code = astor.to_source(ast)
         try:
-            os.unlink(path)
+            os.unlink(self.root_script_path)
         except:
             pass
-        with open(path, 'w') as f:
+        with open(self.root_script_path, 'w') as f:
             f.write('#flor_transformed' + '\n')
             f.write(source_code)
 
     def _sort_control_statements(self, statements):
         pass
 
-
-
+    def _postproc_statements(self, statements):
+        pass
 

@@ -1,7 +1,7 @@
 from flor.constants import *
 import os
 import json
-import pickle as cloudpickle
+import cloudpickle
 
 class Flog:
 
