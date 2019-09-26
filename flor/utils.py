@@ -1,6 +1,7 @@
 import shutil
 from flor.constants import *
 import os
+import ast
 
 
 def cond_mkdir(path):
@@ -81,3 +82,13 @@ def get_timestamp(src='time.google.com'):
     utc_time = time.strftime('%a %b %d %X %Y %Z', time.gmtime(timestamp))
 
     return timestamp, local_time, utc_time, src
+
+# Checks if string is a valid Python expression
+def is_valid_python(expr):
+    if isinstance(expr, ast.Str):
+        expr = expr.s
+    try:
+        ast.parse(expr)
+    except SyntaxError:
+        return False
+    return True
