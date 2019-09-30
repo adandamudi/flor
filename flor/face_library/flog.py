@@ -16,6 +16,7 @@ class Flog:
 
     buffer = []
     fork_now = False
+    prev_fork = None
 
     def __init__(self):
         self.writer = open(Flog.log_path, 'a')
@@ -30,6 +31,7 @@ class Flog:
                 os.nice(1)
                 Flog.serializing = True
                 writer = open(Flog.log_path[:-8] + str(os.getpid()) + '.json', 'a')
+                writer.write(json.dumps({'prev': Flog.prev_fork}) + '\n')
                 for each in Flog.buffer:
                     try:
                         serialized = Flog.serialize_dict(each)
@@ -41,6 +43,7 @@ class Flog:
                 Flog.serializing = False #this is probably unnecessary since we're terminating immediately afterwards
                 os._exit(0)
             else:
+                Flog.prev_fork = pid
                 Flog.buffer = []
         return True
 

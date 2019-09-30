@@ -81,11 +81,25 @@ class OpenLog:
         log_file.close()
 
     def exit(self):
+        # log_file = open(Flog.log_path, 'a')
+        session_end = {'session_end': format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
+
+        timestamp, local_time, utc_time, src_of_time = get_timestamp()
+        session_end.update({'timestamp': timestamp})
+        session_end.update({'local_time': local_time})
+        session_end.update({'UTC_time': utc_time})
+        session_end.update({'source_of_time': src_of_time})
+
+        # log_file.write(json.dumps(session_end) + '\n')
+        # log_file.flush()
+        Flog.buffer.append(session_end)
+
         if Flog.buffer or Flog.fork_now:
             pid = os.fork()
             if not pid:
                 Flog.serializing = True
                 writer = open(Flog.log_path[:-8] + str(os.getpid()) + '.json', 'a')
+                writer.write(json.dumps({'prev': Flog.prev_fork}) + '\n')
                 for each in Flog.buffer:
                     try:
                         serialized = Flog.serialize_dict(each)
@@ -95,21 +109,43 @@ class OpenLog:
                         writer.write(json.dumps(serialized) + '\n')
                 writer.close()
                 Flog.serializing = False  # this is probably unnecessary since we're terminating immediately afterwards
+                # This is the final fork, it is likely that this will finish last. However, we should still do some detection
+                self.merge()
                 os._exit(0)
-        log_file = open(Flog.log_path, 'a')
-        session_end = {'session_end': format(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
-
-        timestamp, local_time, utc_time, src_of_time = get_timestamp()
-        session_end.update({'timestamp': timestamp})
-        session_end.update({'local_time': local_time})
-        session_end.update({'UTC_time': utc_time})
-        session_end.update({'source_of_time': src_of_time})
-
-        log_file.write(json.dumps(session_end) + '\n')
-        log_file.flush()
 
         cond_rmdir(MODEL_DIR)
-        log_file.close()
+        # log_file.close()
+
+    def merge(self):
+        import os
+        import json
+
+        os.chdir(Flog.log_path[:-8])
+        log_files = []
+        # do some filtering with the log files
+        for each in os.listdir():
+            if each[-4:] == 'json' and each != 'log.json':
+                try:
+                    num = int(each[:-5])
+                    log_files.append(num)
+                except ValueError:
+                    continue
+
+        log_files.sort()
+        prev = None
+
+        with open('log.json', 'a') as logger:
+            for each in log_files:
+                with open(str(each) + '.json', "r") as f:
+                    x = f.readlines()
+                    if json.loads(x[0])['prev'] != prev:
+                        # do something here because this means that the file has not been written yet
+                        pass
+                    if len(x) < 50001:
+                        print("corrupted data?")
+                        pass
+                    for each in x[1:]:
+                        logger.write(json.dumps(each) + '\n')
 
     def __enter__(self):
         return self
