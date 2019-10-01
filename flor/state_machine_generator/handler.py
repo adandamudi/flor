@@ -46,7 +46,7 @@ class Handler:
         return self.node.args[0].s
 
 
-    def fetch_highlight_pred(self):
+    def fetch_highlight_pred(self, namespace='self.ns.'):
         assert self.is_highlight(), "{} is not a valid highlight.".format(astor.to_source(self.node).strip())
         if len(self.node.args) < 3:
             return None
@@ -54,7 +54,7 @@ class Handler:
         if isinstance(pred, ast.Str):
             pred_str = pred.s
         elif isinstance(pred, ast.Compare):
-            pred.left.id = 'self.ns.' + pred.left.id
+            pred.left.id = namespace + pred.left.id
             pred_str = astor.to_source(pred).strip()
         else:
             pred_str = astor.to_source(pred).strip()

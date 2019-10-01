@@ -161,7 +161,7 @@ class Scanner:
                     out = {fsm.name: list(out.values()).pop()}
                     setattr(self.ns, fsm.name, out[fsm.name])
                     if fsm.pred_str and not eval(fsm.pred_str):
-                        out[fsm.name] = 'null'
+                        out[fsm.name] = ''
                     self.collected.append({id(fsm): out})
 
     def scan_log(self):

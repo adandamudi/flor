@@ -11,7 +11,7 @@ class RootExpression(ScannerType):
 
     """
 
-    def __init__(self, name, file_path, class_ctx, func_ctx, prev_lsn, tuple_idx):
+    def __init__(self, name, file_path, class_ctx, func_ctx, prev_lsn, pred_str, tuple_idx):
         """
 
         :param file_path: file path of pre-annotated source where the highlight appears
@@ -22,7 +22,7 @@ class RootExpression(ScannerType):
                             the purpose is to narrow the scope of search and limit possibility of ambiguities
         :param follow_lsn: The lsn from which we want to extract data
         """
-        super().__init__(name, file_path, class_ctx, func_ctx, prev_lsn)
+        super().__init__(name, file_path, class_ctx, func_ctx, prev_lsn, pred_str)
         self.tuple_idx = tuple_idx
 
         #State

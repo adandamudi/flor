@@ -68,6 +68,7 @@ class Visitor(ast.NodeVisitor):
                     class_ctx = self.class_ctx,
                     func_ctx = self.func_ctx,
                     prev_lsn = self.lsn,
+                    pred_str=pred_str,
                     tuple_idx = self.pos
                 ))
 
