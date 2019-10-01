@@ -1,5 +1,6 @@
 import os
 import ast
+from types import SimpleNamespace
 
 from flor.complete_capture.transformer import Transformer
 from flor.state_machine_generator import Visitor
@@ -52,6 +53,7 @@ def exec_flan(args):
         consolidated_scanner.state_machines.extend(visitor.scanner.state_machines)
 
     # Scan the log
+    consolidated_scanner.set_namespace(SimpleNamespace())
     consolidated_scanner.scan_log()
     df = consolidated_scanner.to_df()
     target = args.name
@@ -59,10 +61,10 @@ def exec_flan(args):
 
 if __name__ == '__main__':
     try:
-        name = "iris"
+        name = "iris_v2"
         DebuggingObj(name,
-            "/Users/rogarcia/sandbox/sysml/highlighted.20190627-123053.d",
-            ['iris_raw_h.py', 'sklearn_svm_classes_h.py']).debug()
+            "/Users/bobby/Dropbox/Documents/Berkeley/RISELab/sandbox/iris_v2",
+            ['iris_v2_h.py']).debug()
     except:
         pass
     finally:

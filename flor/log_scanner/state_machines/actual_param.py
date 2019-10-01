@@ -8,7 +8,7 @@ class ActualParam(ScannerType):
     For the context-specific call to that function, not every invocation of that function
     """
 
-    def __init__(self, name, file_path, class_ctx, func_ctx, prev_lsn, func_name, pos_kw):
+    def __init__(self, name, file_path, class_ctx, func_ctx, prev_lsn, func_name, pos_kw, pred_str):
         """
 
         :param file_path: file path of pre-annotated source where the highlight appears
@@ -21,7 +21,7 @@ class ActualParam(ScannerType):
         :param func_name: The name of the function that the highlighted actual param is passed to
         :param pos_kw: {'pos': int} or {'kw': str} ... To resolve the value of the parameter
         """
-        super().__init__(name, file_path, class_ctx, func_ctx, prev_lsn)
+        super().__init__(name, file_path, class_ctx, func_ctx, prev_lsn, pred_str)
         self.func_name = func_name
         self.pos_kw = pos_kw
 

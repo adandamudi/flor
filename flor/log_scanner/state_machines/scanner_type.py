@@ -1,7 +1,7 @@
 
 class ScannerType:
 
-    def __init__(self, name, file_path, class_ctx, func_ctx, prev_lsn,):
+    def __init__(self, name, file_path, class_ctx, func_ctx, prev_lsn, pred_str=None):
         self.name = name
         self.file_path = file_path
         self.class_ctx = class_ctx
@@ -10,6 +10,10 @@ class ScannerType:
         self.follow_lsn = None
 
         self.prev_lsn_enabled = False
+        self.pred_str = pred_str
+
+    def set_pred_str(self, s):
+        self.pred_str = s
 
     def set_follow_lsn(self, lsn):
         self.follow_lsn = lsn

@@ -38,6 +38,7 @@ class Visitor(ast.NodeVisitor):
         h = Handler(node)
         if h.is_highlight():
             name = h.fetch_highlight_name()
+            pred_str = h.fetch_highlight_pred()
             # Need to choose a State Machine
             assert self.lsn is not None
             if self.func_name is not None:
@@ -56,7 +57,8 @@ class Visitor(ast.NodeVisitor):
                     func_ctx = self.func_ctx,
                     prev_lsn = self.lsn,
                     func_name = self.func_name,
-                    pos_kw = pos_kw
+                    pos_kw = pos_kw,
+                    pred_str = pred_str
                 ))
             else:
                 #RootExpression Case

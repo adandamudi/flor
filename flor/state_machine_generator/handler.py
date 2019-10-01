@@ -53,8 +53,11 @@ class Handler:
         pred = self.node.args[-1]
         if isinstance(pred, ast.Str):
             pred_str = pred.s
+        elif isinstance(pred, ast.Compare):
+            pred.left.id = 'self.ns.' + pred.left.id
+            pred_str = astor.to_source(pred).strip()
         else:
-            pred_str = astor.to_source(pred.strip())
+            pred_str = astor.to_source(pred).strip()
         assert is_valid_python(pred_str), "{} is not a valid Python expression.".format(pred_str)
         return pred_str
 

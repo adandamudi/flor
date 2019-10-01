@@ -16,6 +16,8 @@ class Scanner:
         self.collected = []
         self.line_number = -1
 
+        self.ns = None
+
     @staticmethod
     def is_subset(ours, theirs):
         """
@@ -40,6 +42,9 @@ class Scanner:
         except ValueError:
             # string is not in list
             return False
+
+    def set_namespace(self, namespace):
+        self.ns = namespace
 
     def register_state_machine(self, fsm):
         self.state_machines.append(fsm)
@@ -154,6 +159,9 @@ class Scanner:
                 out = fsm.consume_data(log_record, self.trailing_ctx)
                 if out:
                     out = {fsm.name: list(out.values()).pop()}
+                    setattr(self.ns, fsm.name, out[fsm.name])
+                    if fsm.pred_str and not eval(fsm.pred_str):
+                        out[fsm.name] = 'null'
                     self.collected.append({id(fsm): out})
 
     def scan_log(self):
