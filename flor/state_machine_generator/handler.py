@@ -35,7 +35,9 @@ class Handler:
 
         # Check if predicate is valid
         if len(args) == 3 and \
-                not (isinstance(args[2], ast.Compare) or isinstance(args[2], ast.Str)):
+            not (isinstance(args[2], ast.Compare)
+                 or isinstance(args[2], ast.BoolOp)
+                 or isinstance(args[2], ast.Str)):
             return False
 
         return True
@@ -55,6 +57,10 @@ class Handler:
             pred_str = pred.s
         elif isinstance(pred, ast.Compare):
             pred.left.id = namespace + pred.left.id
+            pred_str = astor.to_source(pred).strip()
+        elif isinstance(pred, ast.BoolOp):
+            for p in pred.values:
+                p.left.id = namespace + p.left.id
             pred_str = astor.to_source(pred).strip()
         else:
             pred_str = astor.to_source(pred).strip()
