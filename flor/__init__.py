@@ -8,7 +8,7 @@ import flor.utils as utils
 
 # Fetch the flags we need without disrupting user code
 flor_settings = {
-    'mode': ['exec', 'reexec', 'etl'], # default: exec
+    'mode': ['exec', 'reexec', 'etl'],  # default: exec
     'name': ANY,
     'memo': ANY
 }
@@ -54,8 +54,8 @@ utils.cond_mkdir(os.path.join(os.path.expanduser('~'), '.flor'))
 utils.cond_mkdir(os.path.join(os.path.expanduser('~'), '.flor', flags.NAME))
 
 # Finish initializing flor
-from flor.writer import pin_state, random_seed, store, load, get, cond, export
+from flor.writer import pin_state, random_seed, store, load, get, var, cond, export
 
 SKIP = flags.MODE is REEXEC
 
-__all__ = ['pin_state', 'random_seed', 'store', 'load', 'SKIP', 'get', 'cond', 'export']
+__all__ = ['pin_state', 'random_seed', 'store', 'load', 'SKIP', 'get', 'var', 'cond', 'export']

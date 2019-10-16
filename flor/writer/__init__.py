@@ -4,6 +4,8 @@ import random
 import os
 import cloudpickle
 import json
+from types import SimpleNamespace
+import flor
 from flor.stateful import *
 
 
@@ -13,9 +15,11 @@ class Writer:
     pinned_state = []
     seeds = []
     store_load = []
+    predicates = []
     condition = True
     collected = []
     columns = []
+    flor_vars = SimpleNamespace()
 
     if MODE is EXEC:
         fd = open(LOG_PATH, 'w')
@@ -66,7 +70,27 @@ class Writer:
         return cloudpickle.loads(value)
 
     @staticmethod
+    def eval_pred(pred_str):
+        try:
+            return eval(pred_str)
+        except Exception as e:
+            print(e)
+            return True
+
+    @staticmethod
+    def update_condition():
+        if not Writer.predicates:
+            # Initialize condition to True
+            Writer.condition = True
+        else:
+            Writer.condition = all([Writer.eval_pred(pred) for pred in Writer.predicates])
+
+    @staticmethod
     def get(expr, name, pred=None, maps=None):
+        setattr(Writer.flor_vars, name, expr)
+        if type(pred) == str:
+            cond(pred)
+        Writer.update_condition()
         if Writer.condition:
             Writer.collected.append({name: expr})
             if maps:
@@ -77,7 +101,16 @@ class Writer:
 
     @staticmethod
     def cond(pred=None):
-        Writer.condition = eval(str(pred)) if pred is not None else True
+        if type(pred) == str and str(pred) not in Writer.predicates:
+            Writer.predicates.append(str(pred))
+            Writer.update_condition()
+        elif type(pred) == bool:
+            Writer.condition = Writer.condition and pred
+
+    @staticmethod
+    def var(name):
+        # TODO: default value
+        return getattr(Writer.flor_vars, name, None)
 
     @staticmethod
     def to_rows():
@@ -171,6 +204,7 @@ store = Writer.store
 load = Writer.load
 get = Writer.get
 cond = Writer.cond
+var = Writer.var
 export = Writer.export
 
-__all__ = ['pin_state', 'random_seed', 'store', 'load', 'get', 'cond', 'export']
+__all__ = ['pin_state', 'random_seed', 'store', 'load', 'get', 'var', 'cond', 'export']
