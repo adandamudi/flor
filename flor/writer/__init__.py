@@ -81,6 +81,8 @@ class Writer:
 
     @staticmethod
     def forked_write():
+        for each in Writer.write_buffer:
+            del each
         del Writer.write_buffer
         Writer.write_buffer = []
 
