@@ -12,7 +12,7 @@ class Writer:
     pinned_state = []
     seeds = []
     store_load = []
-    max_buffer = 2500
+    max_buffer = 5000
     write_buffer = []
 
     if MODE is EXEC:
@@ -81,6 +81,7 @@ class Writer:
 
     @staticmethod
     def forked_write():
+        del Writer.write_buffer
         Writer.write_buffer = []
 
 
