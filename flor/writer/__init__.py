@@ -5,7 +5,6 @@ import cloudpickle
 import json
 from flor.stateful import *
 from torch import cuda
-import gc
 
 class Writer:
     serializing = False
@@ -13,7 +12,7 @@ class Writer:
     pinned_state = []
     seeds = []
     store_load = []
-    max_buffer = 2500
+    max_buffer = 1000
     write_buffer = []
 
     if MODE is EXEC:
@@ -83,7 +82,6 @@ class Writer:
     @staticmethod
     def forked_write():
         del Writer.write_buffer
-        gc.collect()
         Writer.write_buffer = []
 
 
