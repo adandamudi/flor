@@ -6,6 +6,8 @@ import flor.stateful as flags
 from datetime import datetime
 import flor.utils as utils
 
+import gc
+
 
 def initialize(name, mode='exec', memo=None, maxb=5000):
     """
@@ -39,6 +41,8 @@ def initialize(name, mode='exec', memo=None, maxb=5000):
     from flor.skipblock.namespace_stack import NamespaceStack
     from flor.skipblock.skip_stack import SkipStack
     import signal
+
+    gc.disable()
 
     signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 

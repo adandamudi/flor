@@ -5,6 +5,7 @@ import cloudpickle
 import json
 from flor.stateful import *
 from torch import cuda
+import gc
 
 class Writer:
     serializing = False
@@ -81,9 +82,8 @@ class Writer:
 
     @staticmethod
     def forked_write():
-        for each in Writer.write_buffer:
-            del each
         del Writer.write_buffer
+        gc.collect()
         Writer.write_buffer = []
 
 
