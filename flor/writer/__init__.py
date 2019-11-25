@@ -12,7 +12,7 @@ class Writer:
     pinned_state = []
     seeds = []
     store_load = []
-    max_buffer = 100
+    max_buffer = 10
     write_buffer = []
 
     if MODE is EXEC:
