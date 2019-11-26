@@ -84,8 +84,8 @@ class Writer:
 
     @staticmethod
     def forked_write():
-        for _ in range(len(Writer.write_buffer)):
-            Writer.write_buffer.insert(0, None)
+        for i in range(len(Writer.write_buffer)):
+            Writer.write_buffer.insert(i, None)
 
 
     @staticmethod
