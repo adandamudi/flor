@@ -7,6 +7,7 @@ from flor.stateful import *
 from torch import cuda
 
 MAX_BUFFER = 5000
+import numpy
 
 class Writer:
     serializing = False
@@ -15,7 +16,7 @@ class Writer:
     seeds = []
     store_load = []
     max_buffer = MAX_BUFFER
-    write_buffer = [None] * MAX_BUFFER
+    write_buffer = numpy.empty(MAX_BUFFER, dtype=object)
 
     if MODE is EXEC:
         # fd = open(LOG_PATH, 'w')
@@ -75,7 +76,7 @@ class Writer:
     @staticmethod
     def write(obj):
         obj['global_lsn'] = Writer.lsn
-        Writer.write_buffer.insert(Writer.lsn % MAX_BUFFER, obj)
+        Writer.write_buffer[Writer.lsn % MAX_BUFFER] = obj
         Writer.lsn += 1  # append to buffer and increment lsn
         # if len(Writer.write_buffer) >= Writer.max_buffer:
         if Writer.lsn > 0 and Writer.lsn % MAX_BUFFER == 0:
@@ -84,8 +85,9 @@ class Writer:
 
     @staticmethod
     def forked_write():
-        for i in range(len(Writer.write_buffer)):
-            Writer.write_buffer.insert(i, None)
+        pass
+        # for i in range(len(Writer.write_buffer)):
+        #     Writer.write_buffer.insert(i, None)
 
 
     @staticmethod
