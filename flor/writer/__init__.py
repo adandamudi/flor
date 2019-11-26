@@ -17,6 +17,7 @@ class Writer:
     max_buffer = 5000
     write_buffer = []
     acc_mem = 0
+    max_mem = 0
 
     if MODE is EXEC:
         # fd = open(LOG_PATH, 'w')
@@ -78,14 +79,18 @@ class Writer:
         obj['global_lsn'] = Writer.lsn
         Writer.write_buffer.append(obj)
         Writer.lsn += 1  # append to buffer and increment lsn
+        obj_size = sys.getsizeof(obj)
         Writer.acc_mem += sys.getsizeof(obj)
+        if obj_size > Writer.max_mem:
+            Writer.max_mem = obj_size
         if len(Writer.write_buffer) >= Writer.max_buffer:
             Writer.forked_write()  # if buffer exceeds a certain size, or fork_now is triggered
             # note: fork_now is there as a mechanism for forcing fork, we aren't using it yet
 
     @staticmethod
     def forked_write():
-        print("ACC_MEM: ".format(Writer.acc_mem))
+        print("ACC_MEM: {}".format(Writer.acc_mem))
+        print("Max_MEM: {}".format(Writer.acc_mem))
         sys.exit(0)
 
 
