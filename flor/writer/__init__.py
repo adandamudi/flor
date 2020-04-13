@@ -110,9 +110,18 @@ class Writer:
         obj['global_lsn'] = Writer.lsn
         Writer.write_buffer.append(obj)
         Writer.lsn += 1  # append to buffer and increment lsn
-        if len(Writer.write_buffer) >= Writer.max_buffer:
-            Writer.forked_write()  # if buffer exceeds a certain size, or fork_now is triggered
+        Writer.serial_write(obj)
+        # if len(Writer.write_buffer) >= Writer.max_buffer:
+        #     Writer.forked_write()  # if buffer exceeds a certain size, or fork_now is triggered
             # note: fork_now is there as a mechanism for forcing fork, we aren't using it yet
+
+    @staticmethod
+    def serial_write(obj):
+        fd = open(flags.LOG_PATH.absolute, 'a')
+        if 'value' in obj and not isinstance(obj['value'], str):
+            obj['value'] = Writer.serialize(obj['value'])
+        fd.write(json.dumps(obj) + '\n')
+        fd.close()
 
     @staticmethod
     def forked_write():
@@ -142,8 +151,8 @@ class Writer:
             'period': str(flags.period),
             'outermost_sk': str(flags.outermost_sk)
         })
-        if Writer.write_buffer:
-            Writer.forked_write()  # at the end of flor execution, flushes buffer to disk
+        # if Writer.write_buffer:
+        #     Writer.forked_write()  # at the end of flor execution, flushes buffer to disk
         try:
             os.wait()
         except:
