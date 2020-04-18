@@ -63,7 +63,7 @@ class SkipBlock:
             if self.static_key == SkipBlock.top_nested_head_sk:
                 if state.iterations_count == 1:
                     ratio = SkipBlock.acc_ratios[max(SkipBlock.acc_ratios)]
-                    state.period = int(CUMULATIVE_RATIO_TOLERANCE / ratio)
+                    state.period = max(int(1 / ratio), 1)
                     state.pretraining = ratio >= CUTOFF_RATIO
                 state.iterations_count += 1
         self.block_executed = False
@@ -139,6 +139,7 @@ class SkipBlock:
                 # write_time = tiempo
                 write_time = size_in_bytes / BYTES_PER_SEC
                 ratio = loop_time / write_time
+                print("\n" + f"static_key: {self.static_key}, ratio: {ratio}" + "\n")
                 SkipBlock.skipblock_decisions[self.static_key] = ratio >= CUTOFF_RATIO
                 SkipBlock.acc_ratios[loop_time] = max(SkipBlock.acc_ratios.get(loop_time, -float('inf')), ratio)
             if SkipBlock.skipblock_decisions[self.static_key] or (not state.pretraining and self.period_enabled and self.top_nested_level):
