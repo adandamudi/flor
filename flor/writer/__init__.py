@@ -116,7 +116,7 @@ class Writer:
 
     @staticmethod
     def forked_write():
-        cuda.synchronize()
+        cuda.is_available() and cuda.synchronize()
         pid = os.fork()
         if not pid:
             path = flags.LOG_PATH.absolute.split('.')
@@ -132,6 +132,7 @@ class Writer:
             os._exit(0)
         else:
             Writer.write_buffer = []  # parent process resets buffer
+            return pid
 
     @staticmethod
     def flush():
@@ -143,11 +144,12 @@ class Writer:
             'outermost_sk': str(flags.outermost_sk)
         })
         if Writer.write_buffer:
-            Writer.forked_write()  # at the end of flor execution, flushes buffer to disk
-        try:
-            os.wait()
-        except:
-            pass
+            pid = Writer.forked_write()  # at the end of flor execution, flushes buffer to disk
+            try:
+                print('')
+                os.waitpid(pid)
+            except:
+                pass
 
     @staticmethod
     def store(obj, static_key, global_key):

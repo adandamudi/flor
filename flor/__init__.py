@@ -1,10 +1,11 @@
-import sys
+from flor.initializer import transform
+transform()
+del transform
 
-from flor.constants import *
-from flor.initializer import initialize, is_initialized
+from flor.initializer import initialize_wrapper, initialize, is_initialized
 import flor.utils as utils
 from flor.transformer import Transformer
-# import flor.spooler as spooler
+
 
 import torch
 from torch import cuda
@@ -62,47 +63,8 @@ skip_stack = NullClass
 
 user_settings = None
 
-if [each for each in sys.argv if '--flor' == each[0:len('--flor')]]:
-    # Fetch the flags we need without disrupting user code
-    flor_settings = {
-        'mode': ['exec', 'reexec'], # default: exec
-        'predinit': ['weak', 'strong'],
-        'name': ANY,
-        'memo': ANY,
-        'maxb': ANY,  # buffer limit
-        'rd': ANY,     # root directory for .flor subdir,
-        'pid': ANY,     # partition id, for parallelism
-        'ngpus': ANY,   # num_gpus, for parallelism
-        'rate': ANY     # sampling rate
-    }
-
-    argvs = []
-    flor_arg = None
-    for each in sys.argv:
-        if '--flor' != each[0:len('--flor')]:
-            argvs.append(each)
-        else:
-            flor_arg = each.split('=')[1]
-            assert flor_arg != '', "[FLOR] Enter a setting and value: {}".format(flor_settings)
-    sys.argv = argvs
-
-    user_settings = {}
-
-    # Validate the user entered valid settings
-    flor_arg = flor_arg.split(',')
-    flor_arg = [each.split(':') for each in flor_arg]
-    for (k, v) in flor_arg:
-        assert k in flor_settings, "[FLOR] Invalid setting: {}".format(k)
-        assert flor_settings[k] is ANY or v in flor_settings[k], "[FLOR] Invalid value for setting `{}`. Value must be one of {}".format(k, flor_settings[k])
-        assert k not in user_settings, "[FLOR] Duplicate setting entered: {}".format(k)
-        user_settings[k] = v
-
-    # Check that required flags are set
-    assert 'name' in user_settings, "[FLOR] Missing required parameter: name."
-
-    initialize(**user_settings)
-
-
+initialize_wrapper()
+del initialize_wrapper
 
 __all__ = ['pin_state',
            'random_seed',

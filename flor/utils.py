@@ -1,8 +1,9 @@
 import math
 import os
+import sys
 import shutil
 import flor.common.copy
-
+from flor.constants import *
 
 class PATH:
     def __init__(self, root_path, path_from_home):
@@ -92,10 +93,47 @@ def get_partitions(num_epochs, num_partitions, pretraining, period):
             # For when you sample a Fine-tuning run with sparse checkpoints
             return [range(p.start, s+1) for p in partitions for s in p]
 
-
-
-
-
-
 def deepcopy_cpu(x):
     return flor.common.copy.deepcopy(x)
+
+def parse_args(filter_flor):
+    if [each for each in sys.argv if '--flor' == each[0:len('--flor')]]:
+        # Fetch the flags we need without disrupting user code
+        flor_settings = {
+            'mode': ['exec', 'reexec'], # default: exec
+            'predinit': ['weak', 'strong'],
+            'name': ANY,
+            'memo': ANY,
+            'maxb': ANY,  # buffer limit
+            'rd': ANY,     # root directory for .flor subdir,
+            'sd': ANY,      # source directory for transformation
+            'pid': ANY,     # partition id, for parallelism
+            'ngpus': ANY,   # num_gpus, for parallelism
+            'rate': ANY     # sampling rate
+        }
+
+        argvs = []
+        flor_arg = None
+        for each in sys.argv:
+            if '--flor' != each[0:len('--flor')]:
+                argvs.append(each)
+            else:
+                flor_arg = each.split('=')[1]
+                assert flor_arg != '', "[FLOR] Enter a setting and value: {}".format(flor_settings)
+        if filter_flor:
+            sys.argv = argvs
+
+        user_settings = {}
+
+        # Validate the user entered valid settings
+        flor_arg = flor_arg.split(',')
+        flor_arg = [each.split(':') for each in flor_arg]
+        for (k, v) in flor_arg:
+            assert k in flor_settings, "[FLOR] Invalid setting: {}".format(k)
+            assert flor_settings[k] is ANY or v in flor_settings[k], "[FLOR] Invalid value for setting `{}`. Value must be one of {}".format(k, flor_settings[k])
+            assert k not in user_settings, "[FLOR] Duplicate setting entered: {}".format(k)
+            user_settings[k] = v
+
+        # Check that required flags are set
+        assert 'name' in user_settings, "[FLOR] Missing required parameter: name."
+        return user_settings

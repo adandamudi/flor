@@ -1,14 +1,19 @@
 import os, sys
 import flor
 import math
+import traceback
 
 from flor.constants import *
 from . import stateful as flags
 from datetime import datetime
 import flor.utils as utils
 
+from flor.common.walker import Walker
+from flor.common.versioner import Versioner
 
-def initialize(name, mode='exec', memo=None, maxb=None, rd=None, predinit='weak', pid=None, ngpus=None, rate=None):
+def initialize(name, mode='exec', memo=None,
+               maxb=None, rd=None, predinit='weak',
+               pid=None, ngpus=None, rate=None, sd=None):
     """
     Flor won't work properly unless these values are set correctly
     :param name:
@@ -102,6 +107,52 @@ def initialize(name, mode='exec', memo=None, maxb=None, rd=None, predinit='weak'
         flags.iterations_count =  int(log_record['iterations_count'])
         assert flags.pretraining or flags.period > 0
 
+def initialize_wrapper():
+    user_settings = utils.parse_args(filter_flor=True)
+    if user_settings:
+        initialize(**user_settings)
+
+def transform():
+    flag = '--skip_transform'
+    if flag not in sys.argv:
+        user_settings = utils.parse_args(filter_flor=False)
+        if not user_settings:
+            return
+
+        if 'sd' in user_settings:
+            # User setting the root directly
+            sd = os.path.abspath(user_settings['sd'])
+            root_script = os.path.basename(sys.argv[0])
+        else:
+            sd = os.getcwd()
+            root_script = sys.argv[0]
+            sd = os.path.join(sd, os.path.dirname(root_script)) #basename gets complement
+            root_script = os.path.basename(root_script)
+
+        # WALKER TRANSFORM TREE
+        walker = Walker(sd, root_script)
+
+        # VERSIONER: Commit to repo before code transformation
+        versioner = Versioner(sd)
+        versioner.save_commit_event("flor commit")
+
+        walker.compile_tree()
+
+
+        # Run code
+        try:
+            os.system('python ' + ' '.join(sys.argv) + " " + flag)
+        except:
+            e = sys.exc_info()[0]
+            traceback.print_exc()
+            print(e)
+            print("Cleaning up...")
+        finally:
+            # Restore original
+            versioner.reset_hard()
+            sys.exit(0)
+    else:
+        sys.argv = [e for e in sys.argv if e != flag]
 
 def is_initialized():
     return flags.NAME is not None
