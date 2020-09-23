@@ -263,4 +263,16 @@ pin_state = Writer.pin_state
 random_seed = Writer.random_seed
 flush = Writer.flush
 
-__all__ = ['pin_state', 'random_seed', 'Writer', 'flush']
+class HindsightLogContext:
+    def __init__(self, name=None):
+        self.name = name
+
+    def __enter__(self):
+        print(f'[FLOR] -- BEGIN LOG CONTEXT -- {self.name}')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print(f'[FLOR] -- END LOG CONTEXT -- {self.name}')
+
+hindsight = HindsightLogContext
+
+__all__ = ['pin_state', 'random_seed', 'Writer', 'flush', 'hindsight']

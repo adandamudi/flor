@@ -93,9 +93,26 @@ def get_partitions(num_epochs, num_partitions, pretraining, period):
             return [range(p.start, s+1) for p in partitions for s in p]
 
 
-
-
-
-
 def deepcopy_cpu(x):
     return flor.common.copy.deepcopy(x)
+
+
+def prune_hindsight_log(string):
+    pruned = ''
+    in_context = False
+    for sub in string.split('\n'):
+        if '[FLOR] -- BEGIN LOG CONTEXT --' in sub:
+            in_context = True
+        if not in_context:
+            pruned += sub + '\n'
+        if '[FLOR] -- END LOG CONTEXT --' in sub:
+            in_context = False
+    return pruned
+
+def check_correctness(a, b):
+    if os.path.exists(a) and os.path.exists(b):
+        with open(a, 'r') as f:
+            a = f.read()
+        with open(b, 'r') as f:
+            b = f.read()
+    return prune_hindsight_log(a).strip() == prune_hindsight_log(b).strip()
