@@ -264,14 +264,15 @@ random_seed = Writer.random_seed
 flush = Writer.flush
 
 class HindsightLogContext:
-    def __init__(self, name=None):
+    def __init__(self, log, name=None):
+        self.log = log
         self.name = name
 
     def __enter__(self):
-        print(f'[FLOR] -- BEGIN LOG CONTEXT -- {self.name}')
+        self.log(f'[FLOR] -- BEGIN LOG CONTEXT -- {self.name}')
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print(f'[FLOR] -- END LOG CONTEXT -- {self.name}')
+        self.log(f'[FLOR] -- END LOG CONTEXT -- {self.name}')
 
 hindsight = HindsightLogContext
 
